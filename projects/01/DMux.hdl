@@ -20,4 +20,4 @@ CHIP DMux {
 
     //b output:
     And(a=in, b=sel, out=b);
-}
+} 

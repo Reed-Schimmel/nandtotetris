@@ -9,6 +9,16 @@
  *                            {0, in, 0, 0, 0, 0, 0, 0} if sel == 001
  *                            etc.
  *                            {0, 0, 0, 0, 0, 0, 0, in} if sel == 111
+ *
+ *  sel[2]  sel[1]  sel[0]  ||  a   b   c   d   e   f   g   h
+ *  0       0       0       ||  in  0   0   0   0   0   0   0
+ *  0       0       1       ||  0   in  0   0   0   0   0   0
+ *  0       1       0       ||  0   0   in  0   0   0   0   0
+ *  0       1       1       ||  0   0   o   in  0   0   0   0
+ *  1       0       0       ||  0   0   o   0   in  0   0   0
+ *  1       0       1       ||  0   0   o   0   0   in  0   0
+ *  1       1       0       ||  0   0   o   0   0   0   in  0
+ *  1       1       1       ||  0   0   o   0   0   0   0   in
  */
 
 CHIP DMux8Way {
@@ -16,5 +26,7 @@ CHIP DMux8Way {
     OUT a, b, c, d, e, f, g, h;
 
     PARTS:
-    // Put your code here:
+    DMux(in=in, sel=sel[2], a=split0, b=split1);
+    DMux4Way(in=split0, sel=sel[0..1], a=a, b=b, c=c, d=d); // split0 contains a-d
+    DMux4Way(in=split1, sel=sel[0..1], a=e, b=f, c=g, d=h); // split1 contains e-h
 }

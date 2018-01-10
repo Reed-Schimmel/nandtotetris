@@ -11,7 +11,7 @@
 
 CHIP Mux {
     IN a, b, sel;
-    OUT out;
+    OUT out; 
 
     PARTS:
     Not(in=a, out=nA);

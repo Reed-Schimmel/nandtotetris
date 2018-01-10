@@ -9,6 +9,13 @@
  *                {0, in, 0, 0} if sel == 01
  *                {0, 0, in, 0} if sel == 10
  *                {0, 0, 0, in} if sel == 11
+ *
+ *  sel[1]  sel[0]  ||  a   b   c   d
+ *  0       0       ||  in  0   0   0
+ *  0       1       ||  0   in  0   0
+ *  1       0       ||  0   0   in  0
+ *  1       1       ||  0   0   o   in
+ *
  */
 
 CHIP DMux4Way {
@@ -16,23 +23,7 @@ CHIP DMux4Way {
     OUT a, b, c, d;
 
     PARTS:
-    // not Sel
-    Not(in=sel[0], out=notSel[0]);
-    Not(in=sel[1], out=notSel[1]);
-
-    // a
-    And(a=notSel[0], b=notSel[1], out=notSels);
-    And(a=in, b=notSels, out=a);
-
-    // b
-    And(a=notSel[0], b=sel[1], out=nS1aS2);
-    And(a=in, b=nS1aS2, out=b);
-
-    // c
-    And(a=sel[0], b=notSel[1], out=S1anS2);
-    And(a=in, b=S1anS2, out=c);
-
-    // d
-    And(a=sel[0], b=sel[1], out=andSels);
-    And(a=in, b=andSels, out=d);
+    DMux(in=in, sel=sel[0], a=split0, b=split1);
+    DMux(in=split0, sel=sel[1], a=a, b=c);
+    DMux(in=split1, sel=sel[1], a=b, b=d);
 }

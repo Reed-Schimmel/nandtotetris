@@ -11,7 +11,7 @@
 CHIP And16 {
     IN a[16], b[16];
     OUT out[16];
-
+ 
     PARTS:
     Nand(a=a[0], b=b[0], out=nandAandB1);
     Not(in=nandAandB1, out=out[0]);
