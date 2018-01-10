@@ -41,6 +41,35 @@ CHIP ALU {
         zr, // 1 if (out == 0), 0 otherwise
         ng; // 1 if (out < 0),  0 otherwise
 
-    PARTS:
-   // Put you code here:
+    PARTS: //TODO
+    //zx
+    Mux16(a=x, b=false, sel=zx, out=x2);
+
+    //nx
+    Not16(in=x2, out=negX2);
+    Mux16(a=x2, b=negX2, sel=nx, out=x3);
+
+    //zy
+    Mux16(a=y, b=false, sel=zy, out=y2);
+
+    //ny
+    Not16(in=y2, out=negY2);
+    Mux16(a=y2, b=negY2, sel=ny, out=y3);
+
+    //f
+    Add16(a=x3, b=y3, out=xPlusY);
+    And16(a=x3, b=y3, out=xAndY);
+    Mux16(a=xAndY, b=xPlusY, sel=f, out=fOfXY);
+
+    //no
+    Not16(in=fOfXY, out=negFOfXY);
+    Mux16(a=fOfXY, b=negFOfXY, sel=no, out[0..7]=outLSB,out[8..15]=outMSB, out=out, out[15]=ngBit);
+
+    //zr
+    Or8Way(in=outLSB, out=zrLSB);
+    Or8Way(in=outMSB, out=zrMSB);
+    Or(a=zrMSB, b=zrLSB, out=zr);
+
+    //ng
+    And(a=ngBit, b=true, out=ng); //if the MSb is 1 this the number is negative
 }
