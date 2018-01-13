@@ -16,5 +16,17 @@ CHIP PC {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    
+    Register(in=something, load=true, out=count);
+    
+    // if inc
+    Inc16(in=count, out=countInc);
+    Mux16(a=count, b=countInc, sel=inc, out=newCount);
+    
+    // if load
+    Mux16(a=newCount, b=in, sel=load, out=final);
+    // if reset
+    Mux16(a=final, b=false, sel=reset, out=something);
+    
+    Register(in=something, load=true, out=out); // I am using this to add a tick delay
 }
