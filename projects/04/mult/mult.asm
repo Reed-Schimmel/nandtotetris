@@ -10,7 +10,7 @@
 // function mult(R1,R2) {
 //   i = 0
 //   sum = 0
-//   while (i =< R1) {
+//   while (i < R1) {
 //    sum = sum + R0
 //    i++
 //   }
