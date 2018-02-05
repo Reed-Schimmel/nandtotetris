@@ -21,11 +21,59 @@
  * memory map. The behavior in these addresses is described in the 
  * Screen and Keyboard chip specifications given in the book.
  */
+// 0x0000 = 000000000000000 = 00000 - MEMORY[0]
+// 0x5FFe = 101111111111110 = 24574 - MEMORY[max]
+// 0x6000 = 110000000000000 = 24576 - KEYBOARD
+// 0x4000 = 100000000000000 = 16384 - SCREEN[0]
+// 0x5FFF = 101111111111111 = 24575 - SCREEN[max]
+
+// 2^15 - 1 = 32767
+
+
+// this means that if address[13 & 114] == 1 we don't do anything
+
+// logic flow:
+// if address < 16K send it to RAM
+// if 16k >= address < 24K: subtract 16k from address and send it to SCREEN
+// if address = 24k: output keyboard
+// if address > 24k: it is invalid
+
+
+// if address < 0x6000: pipe in to memory
+// elif address = 0x6000: keyboard
 
 CHIP Memory {
     IN in[16], load, address[15];
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    /*
+    * 4-way demultiplexor:
+    * {a, b, c, d} = {in, 0, 0, 0} if sel == 00
+    *                {0, in, 0, 0} if sel == 01
+    *                {0, 0, in, 0} if sel == 10
+    *                {0, 0, 0, in} if sel == 11
+    *  sel[1]  sel[0]  ||  a   b   c   d
+    *  0       0       ||  in  0   0   0
+    *  0       1       ||  0   in  0   0
+    *  1       0       ||  0   0   in  0
+    *  1       1       ||  0   0   o   in
+    */
+    
+    // pipe 'in' to chip 'x'
+    DMux4Way(in=load, sel=address[13..14], a=toRam1, b=toRam2, c=toScreen, d=toKeyboard);
+    // combine 'toRams'
+    Or(a=toRam1, b=toRam2, out=toRam); // If address points to RAM
+    And(a=toRam, b=load, out=loadRam); // If load == 1
+    RAM16K(in=in, load=loadRam, address=address[0..13], out=ramOut); //RAM IS WORKING!
+
+    //TESTING RAM
+    // Or16(a=false, b=ramOut, out=out); SUCCESS!
+
+    And(a=toScreen, b=load, out=loadScreen);
+    Screen(in=in, load=loadScreen, address=address[0..12], out=screenOut); // address[13] 2^13 = 8k
+
+    Keyboard(out=keyboardOut);
+
+    Mux4Way16(a=ramOut, b=ramOut, c=screenOut, d=keyboardOut, sel=address[13..14], out=out);
 }
