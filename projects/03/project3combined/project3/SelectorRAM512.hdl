@@ -1,0 +1,18 @@
+// This chip splits the 6 bit given address into two 3 bit addresses
+
+CHIP SelectorRAM512 {
+    IN address[9];
+    OUT selRAM[3], selReg[6];
+
+    PARTS:
+    Or(a=address[0], b=false, out=selRAM[0]);
+    Or(a=address[1], b=false, out=selRAM[1]);
+    Or(a=address[2], b=false, out=selRAM[2]);
+
+    Or(a=address[3], b=false, out=selReg[0]);
+    Or(a=address[4], b=false, out=selReg[1]);
+    Or(a=address[5], b=false, out=selReg[2]);
+    Or(a=address[6], b=false, out=selReg[3]);
+    Or(a=address[7], b=false, out=selReg[4]);
+    Or(a=address[8], b=false, out=selReg[5]);
+}

@@ -39,5 +39,34 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+
+// The 16-bit value of the CPU’s instruction input represents either an A-instruction or a C-
+// instruction. In order to figure out the semantics of this instruction, we can parse, or unpack 
+// it, into the following fields: “ixxaccccccdddjjj”. The i-bit (also known as opcode) codes the
+// instruction type, which is either 0 for an A-instruction or 1 for a C-instruction. In case of an
+// A- instruction, the entire instruction represent the 16-bit value of the constant that should be
+// loaded into the A register. In case of a C-instruction, the a- and c-bits code the comp part of
+// the instruction, while the d- and j-bits code the dest and jump parts of the instruction,
+// respectively (the x-bits are not used, and can be ignored).
+
+
+
+    // idk if 'ALUOutput' should go to 'a' or 'b'
+
+
+    Mux16(a=instruction, b=, sel=instruction[0], out=);
+    // Register A
+    Register(in=, load=, out=regA);
+
+
+    DMux4Way(in=, sel=, a=, b=, c=, d=);
+
+    // Register D
+    Register(in=ALUOutput, load=, out=);
+    Mux16(a=, b=, sel=, out=);
+
+    // if we are not jumping then inc=1 else inc=0
+    PC(in=regA, load=, inc=, reset=reset, out=pc);
+
+    ALU(x=, y=, zx=, nx=, zy=, ny=, f=, no=, out=ALUOutput, zr=, ng=);
 }
