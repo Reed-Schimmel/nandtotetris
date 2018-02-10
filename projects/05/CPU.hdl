@@ -54,9 +54,9 @@ CHIP CPU {
     Mux16(a=instruction, b=ALUOutput, sel=instruction[0], out=regAInput);
 
     // Register A
-    Register(in=regAInput, load=instruction[10], out=regA);
+    Register(in=regAInput, load=instruction[10], out=regA, out=addressM);
 
-    DMux4Way(in=, sel=, a=, b=, c=, d=);
+    // DMux4Way(in=, sel=, a=, b=, c=, d=);
 
     // Register D
     //       ixxaccccccdddjjj
