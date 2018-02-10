@@ -52,12 +52,6 @@ CHIP JMP { // I am not sure this will work
     And(a=c42, b=notZero, out=c43);     // ... & !zr
     And(a=c43, b=notNeg, out=4);        // ... & !ng
 
-    // // condition 5: !j1 & j2 & j3 & zr & !ng
-    // And(a=notJ1, b=jump[1], out=c51);   // !j1 & j2
-    // And(a=c51, b=jump[2], out=c52);     // ... & j3
-    // And(a=c52, b=zr, out=c53);          // ... & zr
-    // And(a=c53, b=notNeg, out=5);        // ... & !ng
-
     // condition 5: j1 & !j2 & !j3 & !zr & ng
     And(a=jump[0], b=notJ2, out=c51);   //  j1 & !j2
     And(a=c51, b=jump[2], out=c52);     // ... & j3
@@ -92,5 +86,5 @@ CHIP JMP { // I am not sure this will work
         in[5]=c6,
         in[6]=c7,
         in[7]=c8,
-        out=c1c8);
+        out=out);
 }
