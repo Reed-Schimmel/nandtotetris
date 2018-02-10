@@ -1,0 +1,92 @@
+/* j1 | j2 | j3 | zr | ng | out
+ * 0  | 0  | 1  | 0  | 0  |  1
+ * 0  | 1  | 0  | 1  | 0  |  1
+ * 0  | 1  | 1  | 1  | 0  |  1
+ * 0  | 1  | 1  | 0  | 0  |  1
+ * 0  | 1  | 1  | 1  | 0  |  1
+ * 1  | 0  | 0  | 0  | 1  |  1
+ * 1  | 0  | 1  | 0  | 1  |  1
+ * 1  | 1  | 0  | 1  | 0  |  1
+ * 1  | 1  | 0  | 0  | 1  |  1
+ */
+
+CHIP JMP { // I am not sure this will work
+
+    IN jump[3], zr, ng;
+
+    OUT out;
+
+    PARTS:
+    Not(in=jump[0], out=notJ1);
+    Not(in=jump[1], out=notJ2);
+    Not(in=jump[2], out=notJ3);
+    Not(in=zr, out=notZero);
+    Not(in=ng, out=notNeg);
+
+    // condition 1: !j1 & !j2 & j3 & !zr & !ng
+    And(a=notJ1, b=notJ2, out=c11);     // !j1 & !j2
+    And(a=c11, b=jump[2], out=c12);     // ... & j3
+    And(a=c12, b=notZero, out=c13);     // ... & !zr
+    And(a=c13, b=notNeg, out=c1);       // ... & !ng
+
+    // condition 2: !j1 & j2 & !j3 & zr & !ng
+    And(a=notJ1, b=jump[1], out=c21);   // !j1 & j2
+    And(a=c21, b=notJ3, out=c22);       // ... & !j3
+    And(a=c22, b=zr, out=c23);          // ... & zr
+    And(a=c23, b=notNeg, out=c2);       // ... & !ng
+
+    // condition 3: !j1 & j2 & j3 & zr & !ng
+    And(a=notJ1, b=jump[1], out=c31);   // !j1 & j2
+    And(a=c31, b=jump[2], out=c32);     // ... & j3
+    And(a=c32, b=zr, out=c33);          // ... & zr
+    And(a=c33, b=notNeg, out=3);        // ... & !ng
+
+    // condition 4: !j1 & j2 & j3 & !zr & !ng
+    And(a=notJ1, b=jump[1], out=c41);   // !j1 & j2
+    And(a=c41, b=jump[2], out=c42);     // ... & j3
+    And(a=c42, b=notZero, out=c43);     // ... & !zr
+    And(a=c43, b=notNeg, out=4);        // ... & !ng
+
+    // condition 5: !j1 & j2 & j3 & zr & !ng
+    And(a=notJ1, b=jump[1], out=c51);   // !j1 & j2
+    And(a=c51, b=jump[2], out=c52);     // ... & j3
+    And(a=c52, b=zr, out=c53);          // ... & zr
+    And(a=c53, b=notNeg, out=5);        // ... & !ng
+
+    // condition 6: j1 & !j2 & !j3 & !zr & ng
+    And(a=jump[0], b=notJ2, out=c61);   //  j1 & !j2
+    And(a=c61, b=jump[2], out=c62);     // ... & j3
+    And(a=c62, b=zr, out=c63);          // ... & zr
+    And(a=c63, b=notNeg, out=6);        // ... & !ng
+
+    // condition 7: j1 & !j2 & j3 & !zr & ng
+    And(a=jump[0], b=notJ2, out=c71);   //  j1 & !j2
+    And(a=c71, b=jump[2], out=c72);     // ... & j3
+    And(a=c72, b=notZero, out=c73);     // ... & !zr
+    And(a=c73, b=ng, out=7);            // ... & ng
+
+    // condition 8: j1 & j2 & !j3 & zr & !ng
+    And(a=jump[0], b=jump[1], out=c81); //  j1 & j2
+    And(a=c81, b=notJ3, out=c82);       // ... & !j3
+    And(a=c82, b=zr, out=c83);          // ... & zr
+    And(a=c83, b=notNeg, out=8);        // ... & !ng
+
+    // condition 9: j1 & j2 & !j3 & !zr & ng
+    And(a=jump[0], b=jump[1], out=c91); //  j1 & j2
+    And(a=c91, b=notJ3, out=c92);       // ... & !j3
+    And(a=c92, b=notZero, out=c93);     // ... & !zr
+    And(a=c93, b=ng, out=9);            // ... & ng
+
+
+    Or8Way(
+        in[0]=c1,
+        in[1]=c2,
+        in[2]=c3,
+        in[3]=c4,
+        in[4]=c5,
+        in[5]=c6,
+        in[6]=c7,
+        in[7]=c8,
+        out=c1c8);
+    Or(a=c1c8, b=c9, out=out);
+}

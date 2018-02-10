@@ -49,24 +49,41 @@ CHIP CPU {
 // the instruction, while the d- and j-bits code the dest and jump parts of the instruction,
 // respectively (the x-bits are not used, and can be ignored).
 
+// ixxaccccccADMjjj
 
+    Mux16(a=instruction, b=ALUOutput, sel=instruction[0], out=regAInput);
 
-    // idk if 'ALUOutput' should go to 'a' or 'b'
-
-
-    Mux16(a=instruction, b=, sel=instruction[0], out=);
     // Register A
-    Register(in=, load=, out=regA);
-
+    Register(in=regAInput, load=instruction[10], out=regA);
 
     DMux4Way(in=, sel=, a=, b=, c=, d=);
 
     // Register D
-    Register(in=ALUOutput, load=, out=);
-    Mux16(a=, b=, sel=, out=);
+    //       ixxaccccccdddjjj
+    // M=A = 1110110000001000
+    // D=A = 1110110000010000
+    Register(in=ALUOutput, load=instruction[11], out=regD);
 
+    // Pass on either A or M value
+    //         ixxaccccccdddjjj
+    // D=D-A = 1110010011010000
+    // D=D-M = 1111010011010000
+    Mux16(a=regA, b=inM, sel=instruction[3], out=ALUinputY);
+
+
+    
     // if we are not jumping then inc=1 else inc=0
-    PC(in=regA, load=, inc=, reset=reset, out=pc);
+    JMP(jumps=instruction[13..15], zr=isZeroOutput, ng=isNegOutput, out=willJump);
+    Not(in=willJump, out=notJump);
+    PC(in=regA, load=willJump, inc=notJump, reset=reset, out=pc);
 
-    ALU(x=, y=, zx=, nx=, zy=, ny=, f=, no=, out=ALUOutput, zr=, ng=);
+    // x come from D reg and y comes from either A or M
+    ALU(x=regD, y=ALUinputY,
+        zx=instruction[4], nx=instruction[5],
+        zy=instruction[6], ny=instruction[7],
+        f=instruction[8], no=instruction[9],
+        out=ALUOutput, zr=isZeroOutput, ng=isNegOutput);
+    
+    // instruction[12] is writeM bit
+    And(a=instruction[12], b=true, out=writeM);
 }
