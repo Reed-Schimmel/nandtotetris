@@ -12,6 +12,7 @@
  *------------------------------------------| */
 
 CHIP JMP { // I am not sure this will work
+           // I think JMP works
 
     IN jump[3], zr, ng;
 
@@ -25,57 +26,64 @@ CHIP JMP { // I am not sure this will work
     Not(in=ng, out=notNeg);
 
     //               0  | 0  | 1  | 0  | 0  |
-    // condition 1: !j1 & !j2 & j3 & !zr & !ng
+    // condition 1: !j1 & !j2 & j3 & !zr & !ng TESTED!
     And(a=notJ1, b=notJ2, out=c11);     // !j1 & !j2
     And(a=c11, b=jump[2], out=c12);     // ... & j3
     And(a=c12, b=notZero, out=c13);     // ... & !zr
     And(a=c13, b=notNeg, out=c1);       // ... & !ng
 
-    //               0  | 1  | 0  | 1  | 0
-    // condition 2: !j1 & j2 & !j3 & zr & !ng
+    //               0  | 1  | 0  | 1  | 0 |
+    // condition 2: !j1 & j2 & !j3 & zr & !ng TESTED!
     And(a=notJ1, b=jump[1], out=c21);   // !j1 & j2
     And(a=c21, b=notJ3, out=c22);       // ... & !j3
     And(a=c22, b=zr, out=c23);          // ... & zr
     And(a=c23, b=notNeg, out=c2);       // ... & !ng
 
-    //               0  | 1  | 1  | 1  | 0
+    //               0  | 1  | 1  | 1  | 0 |
     // condition 3: !j1 & j2 & j3 & zr & !ng
     And(a=notJ1, b=jump[1], out=c31);   // !j1 & j2
     And(a=c31, b=jump[2], out=c32);     // ... & j3
     And(a=c32, b=zr, out=c33);          // ... & zr
-    And(a=c33, b=notNeg, out=3);        // ... & !ng
+    And(a=c33, b=notNeg, out=c3);        // ... & !ng
 
-    //               0  | 1  | 1  | 0  | 0
+    //               0  | 1  | 1  | 0  | 0 |
     // condition 4: !j1 & j2 & j3 & !zr & !ng
     And(a=notJ1, b=jump[1], out=c41);   // !j1 & j2
     And(a=c41, b=jump[2], out=c42);     // ... & j3
     And(a=c42, b=notZero, out=c43);     // ... & !zr
-    And(a=c43, b=notNeg, out=4);        // ... & !ng
+    And(a=c43, b=notNeg, out=c4);        // ... & !ng
 
+    //               1  | 0  | 0  | 0  | 1  |
     // condition 5: j1 & !j2 & !j3 & !zr & ng
     And(a=jump[0], b=notJ2, out=c51);   //  j1 & !j2
     And(a=c51, b=jump[2], out=c52);     // ... & j3
     And(a=c52, b=zr, out=c53);          // ... & zr
-    And(a=c53, b=notNeg, out=5);        // ... & !ng
+    And(a=c53, b=notNeg, out=c5);        // ... & !ng
 
+    //               1  | 0  | 1  | 0  | 1  | 
     // condition 6: j1 & !j2 & j3 & !zr & ng
     And(a=jump[0], b=notJ2, out=c61);   //  j1 & !j2
     And(a=c61, b=jump[2], out=c62);     // ... & j3
     And(a=c62, b=notZero, out=c63);     // ... & !zr
-    And(a=c63, b=ng, out=6);            // ... & ng
+    And(a=c63, b=ng, out=c6);            // ... & ng
 
-    // condition 7: j1 & j2 & !j3 & zr & !ng
+    //              1  | 1  | 0  | 1  | 0  | 
+    // condition 7: j1 & j2 & !j3 & zr & !ng TESTED!
     And(a=jump[0], b=jump[1], out=c71); //  j1 & j2
     And(a=c71, b=notJ3, out=c72);       // ... & !j3
     And(a=c72, b=zr, out=c73);          // ... & zr
-    And(a=c73, b=notNeg, out=7);        // ... & !ng
+    And(a=c73, b=notNeg, out=c7);        // ... & !ng
 
-    // condition 8: j1 & j2 & !j3 & !zr & ng
+    //              1  | 1  | 0  | 0  | 1  |
+    // condition 8: j1 & j2 & !j3 & !zr & ng TESTED!
     And(a=jump[0], b=jump[1], out=c81); //  j1 & j2
     And(a=c81, b=notJ3, out=c82);       // ... & !j3
     And(a=c82, b=notZero, out=c83);     // ... & !zr
-    And(a=c83, b=ng, out=8);            // ... & ng
+    And(a=c83, b=ng, out=c8);           // ... & ng
 
+    // unconditional jump: jump = [1,1,1]
+    Or(a=jump[0], b=jump[1], out=jmp1);
+    Or(a=jmp1, b=jump[2], out=jmp);
 
     Or8Way(
         in[0]=c1,
@@ -86,5 +94,7 @@ CHIP JMP { // I am not sure this will work
         in[5]=c6,
         in[6]=c7,
         in[7]=c8,
-        out=out);
+        out=c1c8);
+
+    Or(a=c1c8, b=jmp, out=out);
 }
