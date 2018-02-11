@@ -14,10 +14,16 @@
  * with the computer via the keyboard.
  */
 
-CHIP Computer {
+CHIP Computer { // CPU not working yet TODO
 
     IN reset;
 
     PARTS:
-    // Put your code here:
+    ROM32K(address=pcOut, out=ROMout);
+
+    CPU(inM=memOut, instruction=ROMout,
+        reset=reset, outM=cpuM, writeM=cpuWrite,
+        addressM=cpuAddress, pc=pcOut);
+
+    Memory(in=cpuM, load=cpuWrite, address=cpuAddress, out=memOut);
 }

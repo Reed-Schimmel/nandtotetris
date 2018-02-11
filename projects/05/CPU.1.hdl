@@ -51,13 +51,13 @@ CHIP CPU {
 
 // ixxaccccccADMjjj
     // If op-code or if d1
-    // Mux16(a=instruction, b=ALUOutput, sel=instruction[15], out=regAInput);
-    Mux16(a=instruction, b=ALUOutput, sel=instruction[15], out=regAInput);
-    Not(in=instruction[15], out=isAinstruction);
-    Or(a=instruction[5], b=isAinstruction, out=loadA);
+    Mux16(a=instruction, b=ALUOutput, sel=instruction[0], out=regAInput);
+
     // Register A
     // Register(in=regAInput, load=instruction[10], out=regA, out[0..14]=addressM);
-    ARegister(in=regAInput, load=loadA, out=regA, out[0..14]=addressM);
+    ARegister(in=regAInput, load=instruction[10], out=regA, out[0..14]=addressM);
+
+
     //
     // DMux8Way(in=, sel=instruction[10..12], a=dNull, b=, c=, d=, e=, f=, g=, h=);
     
@@ -71,33 +71,36 @@ CHIP CPU {
     // M=A = 1110110000001000
     // D=A = 1110110000010000
     // Register(in=ALUOutput, load=instruction[11], out=regD);
-    // if A instruction do not load D
-    Mux(a=instruction[4], b=false, sel=isAinstruction, out=loadD);
-    DRegister(in=ALUOutput, load=loadD, out=regD);
+    DRegister(in=ALUOutput, load=instruction[11], out=regD);
 
 
     
     // if we are not jumping then inc=1 else inc=0
-    JMP(jump=instruction[0..2], zr=isZeroOutput, ng=isNegOutput, out=willJump);
+    JMP(jump=instruction[13..15], zr=isZeroOutput, ng=isNegOutput, out=willJump);
     Not(in=willJump, out=notJump);
-    And(a=willJump, b=instruction[15], out=jumpPC);
-    PC(in=regA, load=jumpPC, inc=true, reset=reset, out[0..14]=pc);
-    // PC(in=regA, load=willJump, inc=notJump, reset=reset, out[0..14]=pc);
+    PC(in=regA, load=willJump, inc=notJump, reset=reset, out[0..14]=pc);
+
 
     // Pass on either A or M value
     //         ixxaccccccdddjjj
     // D=D-A = 1110010011010000
     // D=D-M = 1111010011010000
-    Mux16(a=regA, b=inM, sel=instruction[12], out=ALUinputY);
+    Mux16(a=regA, b=inM, sel=instruction[3], out=ALUinputY);
     // x come from D reg and y comes from either A or M
     ALU(x=regD, y=ALUinputY,
-        zx=instruction[11], nx=instruction[10],
-        zy=instruction[9], ny=instruction[8],
-        f=instruction[7], no=instruction[6],
-        out=ALUOutput, out=outM,
-        zr=isZeroOutput, ng=isNegOutput);
+        zx=instruction[4], nx=instruction[5],
+        zy=instruction[6], ny=instruction[7],
+        f=instruction[8], no=instruction[9],
+        out=ALUOutput, zr=isZeroOutput, ng=isNegOutput);
     
+    // instruction[12] is writeM bit
+    // And(a=instruction[12], b=true, out=writeM);
+    // if op-code = 1 and M = 1
+    // And(a=false, b=false, out=writeM);
+    // And(a=instruction[12], b=instruction[0], out=writeM);
     And(a=instruction[3], b=instruction[15], out=writeM);
 }
 
-// TODO i think I have my instruction buses backwards
+// Completed:
+// writeM
+// ALU inputs
