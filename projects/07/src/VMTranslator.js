@@ -19,6 +19,7 @@
 const fs = require('fs');
 
 const INPUT_FILE = process.argv[2];
+const FILE_NAME = 'hello'//INPUT_FILE //TODO PROCESS
 const OUTPUT_FILE = process.argv[3];
 
 const MATH_BOOL_COMMANDS = new Set([
@@ -33,16 +34,133 @@ const MATH_BOOL_COMMANDS = new Set([
   'not',
 ]);
 
-const STACKS = {
-  SP: 0,
-  LCL: 1,
-  stack: 256, // to 2047
-  static: 16, // to 255
+// const STACKS = {
+//   SP: 0,
+//   LCL: 1,
+//   stack: 256, // to 2047
+//   static: 16, // to 255
+// }
+
+const SEGMENTS = { //TODO temp
+  local: 'LCL',
+  argument: 'ARG',
+  this: 'THIS',
+  that: 'THAT',
+  pointer: 'R3',
+  temp: 'R5'
 }
+
+const pushToStack = words => {
+  const idx = words.pop();
+  const segment = words.pop();
+
+  let baseAddress = SEGMENTS[segment];
+  let data = `@${baseAddress}\nA=A+${idx}\nD=M\n`;
+
+  switch (segment) {
+  case 'static':
+    baseAddress = `${FILE_NAME}.idx`
+    data = `@${baseAddress}\nD=M\n`
+    break;
+
+  case 'constant':
+    data = `@${idx}\nD=A\n`;    
+    break;
+    
+  default:
+    break;
+  }
+
+  const toStack = '@SP\nA=M\nM=D\n@SP\nM=M+1';
+
+  return data + toStack;
+
+  // `// push constant 2
+  // @2
+  // D=A
+  // @SP
+  // A=M
+  // M=D
+  // @SP
+  // M=M+1
+  // `
+
+  // for file XXX.vm
+  //push static 3
+  //@XXX.3
+  //D=M
+  //{push D to stack}
+};
+
+const popFromStack = words => { // TODO static segment and this in general
+  const idx = words.pop();
+  const segment = words.pop();
+
+  // We will never pop to constant
+  if (segment === 'constant') return '';
+
+  const baseAddress = SEGMENTS[segment];
+
+  return(`@SP
+A=M
+D=M
+@${baseAddress}
+A=A+${idx}
+M=D
+@SP
+M=M-1`
+  );
+
+  // pop local 0
+  // @SP
+  // A=M
+  // D=M
+  // @LCL
+  // A = A + 0
+  // M = D
+  // @SP
+  // M=M-1
+  // `// push constant 2
+  // @2
+  // D=A
+  // @SP
+  // A=M
+  // M=D
+  // @SP
+  // M=M+1
+  // `
+};
 
 const writeToFile = (path, assemblyCode) => fs.writeFileSync(path, assemblyCode);
 
-translateCommand = command => {
+const translateCommand = command => {
+  const words = command.split(' ');
+  // console.log(words)
+  // check words[0] for 'push', 'pop', or math/logic commands
+
+  if (words[0] === 'push') {
+    return pushToStack(words.slice(1));
+  } else if (words[0] === 'pop') {
+    return popFromStack(words.slice(1));
+  } else if (MATH_BOOL_COMMANDS.has(words[0])) {
+    let operation;
+    if (words[0] === 'add') {
+      operation = 'D=M+D';
+    } else if (words[0] === 'sub') {
+      operation = 'D=M-D'
+    }
+    return `@SP
+A=M
+D=M
+@SP
+M=M-1
+A=M
+${operation} // the operation
+M=D`;
+  } else {
+
+  }
+
   return 'hi';
 }
 
@@ -73,7 +191,6 @@ const main = () => {
   // console.log(assemblyStatements)
   // Finally we write the assembly code to file.
   writeToFile(OUTPUT_FILE, assemblyStatements);
-  
 }
 
 main();
