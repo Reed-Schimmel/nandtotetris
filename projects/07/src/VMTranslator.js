@@ -46,8 +46,8 @@ const SEGMENTS = { //TODO temp
   argument: 'ARG',
   this: 'THIS',
   that: 'THAT',
-  pointer: 'R3',
-  temp: 'R5'
+  // pointer: 'R3',
+  // temp: 'R5'
 }
 
 const pushToStack = words => {
@@ -55,7 +55,11 @@ const pushToStack = words => {
   const segment = words.pop();
 
   let baseAddress = SEGMENTS[segment];
-  let data = `@${baseAddress}\nA=A+${idx}\nD=M\n`;
+  let data = `@${idx}
+D=A
+@${baseAddress}
+A=A+D
+\nD=M\n`;
 
   switch (segment) {
   case 'static':
@@ -101,14 +105,22 @@ const popFromStack = words => { // TODO static segment and this in general
 
   const baseAddress = SEGMENTS[segment];
 
-  return(`@SP
+  return(`// Address of destination
+@${idx}
+D=A
+@${baseAddress}
+D=A+D
+@R5
+M=D
+// pop data
+@SP
 A=M
 D=M
-@${baseAddress}
-A=A+${idx}
-M=D
-@SP
-M=M-1`
+M=M-1 
+//Data to RAM
+@R5
+A=M
+M=D`
   );
 
   // pop local 0
@@ -144,19 +156,58 @@ const translateCommand = command => {
     return popFromStack(words.slice(1));
   } else if (MATH_BOOL_COMMANDS.has(words[0])) {
     let operation;
-    if (words[0] === 'add') {
-      operation = 'D=M+D';
-    } else if (words[0] === 'sub') {
-      operation = 'D=M-D'
+    switch (words[0]) { // true is '-1' and false is '0'
+    case 'add':
+      operation = 'D=M+D';        
+      break;
+
+    case 'sub':
+      operation = 'D=M-D';        
+      break;
+  
+    case 'neg':
+      operation = 'D=M-D';        
+      break;
+  
+    case 'eq':
+      operation = 'D=M-D';        
+      break;
+  
+    case 'gt':
+      operation = 'D=M-D';        
+      break;
+  
+    case 'lt':
+      operation = 'D=M-D';        
+      break;
+  
+    case 'and':
+      operation = 'D=M-D';        
+      break;
+  
+    case 'or':
+      operation = 'D=M-D';        
+      break;
+  
+    case 'not':
+      operation = 'D=M-D';        
+      break;
+  
+    default:
+      break;
     }
+
     return `@SP
+M=M-1
 A=M
 D=M
 @SP
 M=M-1
 A=M
 ${operation} // the operation
-M=D`;
+M=D
+@SP
+M=M+1`;
   } else {
 
   }
